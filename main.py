@@ -1,10 +1,9 @@
 import numpy as np
 import scipy as scipy
 from matplotlib import pyplot as plt
-from numpy.fft import rfft, rfftfreq
 from scipy import signal
 
-SAMPLE_RATE = 200
+DURATION = 300
 
 
 def draw_plot(x, y, name):
@@ -34,7 +33,12 @@ if __name__ == '__main__':
         path = 'input/стресс' + str(i) + '.rr'
         y = np.array(read_from_file(path))
         N = len(y)
-        x = np.linspace(1, N, N,  endpoint=False)
-        xf, yf = scipy.signal.welch(y, detrend='constant', scaling='spectrum')
+        x = np.linspace(1, N, N, endpoint=False)
+        freq = N / DURATION
+        xf, yf = scipy.signal.welch(y, detrend='constant', scaling='spectrum', fs=freq)
+        VLF_end = int(0.04 / (max(xf) / N))
+        LF_end = int(0.15 / (max(xf) / N))
+        HF_end = int(0.4 / (max(xf) / N))
+        print(sum(yf[LF_end:HF_end]))
         draw_plot(sorted(x), y, str(i) + ' график')
         draw_plot(sorted(xf), np.abs(yf), 'Частотный спектр сигнала ' + str(i) + '-ого графика')
