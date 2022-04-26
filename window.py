@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from numpy.fft import rfft, rfftfreq
+
 import main
 
 
@@ -19,6 +21,16 @@ def delete_fig_agg(fig_agg):
 
 
 sg.theme('Dark Grey 13')
+
+headers = ['тип', 'результат', 'норма']
+data = [
+    ['Мощность VLF', '-', '765±410'],
+    ['Мощность LF', '-', '1170±416'],
+    ['Мощность HF', '-', '975±203'],
+    ['LF нормированная', '-', '50,6±9,4%'],
+    ['HF нормированная', '-', '49,4±9,4%'],
+
+]
 
 layout = [
     [sg.Text('Введите файл RR-кривых', pad=(20, 5))],
@@ -45,8 +57,14 @@ layout = [
 
     [
         sg.Canvas(size=(650, 350), key='-CANVAS-SPECTRUM-', pad=(20, 5), background_color='white'),
-        sg.Canvas(size=(350, 350), key='-CANVAS-RESULT-', pad=(20, 5), background_color='white')
+
+        sg.Table(auto_size_columns=True, values=data, headings=headers, key='-CANVAS-RESULT-', pad=(20, 5)),
+
+    ],
+    [
+        sg.Text('Вывод', font='Helvetica 28', key='-CONCLUSION-')
     ]
+
 ]
 
 window = sg.Window('Оценка стресс состояния', layout)
@@ -81,13 +99,23 @@ while True:
         except Exception as e:
             sg.popup('Такого файла не существует')
         hist_x = ['VLF', 'LF', 'HF']
-        VLF_end = int(0.04 / (max(xf) / N))
-        LF_end = int(0.15 / (max(xf) / N))
-        HF_end = int(0.4 / (max(xf) / N))
+        VLF_end = int(0.04 / (max(xf) / len(xf)))
+        LF_end = int(0.15 / (max(xf) / len(xf)))
+        HF_end = int(0.4 / (max(xf) / len(xf)))
         hist_y = [sum(yf[0:VLF_end]), sum(yf[VLF_end:LF_end]), sum(yf[LF_end:HF_end])]
         canvas_elem = window['-CANVAS-DIAGRAM-'].TKCanvas
         if fig_diagram is not None:
             delete_fig_agg(fig_diagram)
         fig_diagram = draw_figure(canvas_elem, main.draw_rect_plot(hist_x, hist_y, 'Диаграмма мощности', 350, 350))
+        canvas_elem = window['-CANVAS-RESULT-']
+        values = canvas_elem.Values
+        values[0][1] = round(hist_y[0])
+        values[1][1] = round(hist_y[1])
+        values[2][1] = round(hist_y[2])
+        values[3][1] = round((hist_y[1]) / (hist_y[1] + hist_y[2]) * 100, 1)
+        values[4][1] = round((hist_y[2]) / (hist_y[1] + hist_y[2]) * 100, 1)
+        canvas_elem.update(values)
+        canvas_elem = window['-CONCLUSION-']
+        canvas_elem.update('Вывод : ' + main.analyze(hist_y[2]))
 
 window.close()

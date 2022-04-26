@@ -23,6 +23,13 @@ def draw_rect_plot(x, y, name, w, h):
     return fig
 
 
+def analyze(HF_sum):
+    if HF_sum > 1200 or HF_sum < 700:
+        return 'Замечено отклонение от нормы по HF мощности'
+    else:
+        return 'Спектральная мощность HF соответствует норме'
+
+
 def read_from_file(path):
     f = open(path, 'r')
     y = []
