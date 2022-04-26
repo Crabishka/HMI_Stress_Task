@@ -6,11 +6,21 @@ from scipy import signal
 DURATION = 300
 
 
-def draw_plot(x, y, name):
+def draw_plot(x, y, name, w, h):
     fig, ax = plt.subplots()
     ax.set_title(name)
+    fig = plt.figure(figsize=(w / 100, h / 100))
     plt.plot(x, y)
-    plt.show()
+    return fig
+
+
+def draw_rect_plot(x, y, name, w, h):
+    fig, ax = plt.subplots()
+    ax.set_title(name)
+    ax.set_facecolor('seashell')
+    fig = plt.figure(figsize=(w / 100, h / 100))
+    plt.bar(x, y)
+    return fig
 
 
 def read_from_file(path):
@@ -34,7 +44,7 @@ if __name__ == '__main__':
         y = np.array(read_from_file(path))
         N = len(y)
         x = np.linspace(1, N, N, endpoint=False)
-        freq = N / DURATION
+        freq = N / (sum(y) / 1000)
         xf, yf = scipy.signal.welch(y, detrend='constant', scaling='spectrum', fs=freq)
         VLF_end = int(0.04 / (max(xf) / N))
         LF_end = int(0.15 / (max(xf) / N))
